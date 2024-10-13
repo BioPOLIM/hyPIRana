@@ -9,10 +9,10 @@ Contributions in this code so far have been made by Sebastian Unger, Maryam Ali,
 
 This code analyzes the hyperspectral data by:
 - Plotting generated images: AFM Topography, integrated PiF-IR hyperspectral image, and AFM phase image.
-- Plotting the mean spectrum on PiFM intensity.
+- Plotting the mean spectrum on PiF-IR intensity.
 - Principal Component Analysis PCA represented by loaded components plot, scatter plot, and individual component factor plots.
 
-In the context of the article by Joseph et al. Spectrochimica Acta part A: Molecular and Biomolecular Sepctroscopy, 306, 123612, 2024, two PiF-IR hyperspectral data sets have been analysed using hyPIRana. The Raw data are available in this repository:
+In the context of the article by Joseph et al. Spectrochimica Acta part A: Molecular and Biomolecular Sepctroscopy, 306, 123612, 2024, two PiF-IR hyperspectral data sets have been analysed using hyPIRana. The Raw data have been available in this repository:
 - single-fibrillar F-Actin
 - crosslinked F-Actin
 
