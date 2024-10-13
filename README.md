@@ -13,3 +13,6 @@ This code analyzes the hyperspectral data by:
 In the context of the article by Joseph et al. Spectrochimica Acta part A: Molecular and Biomolecular Sepctroscopy, 306, 123612, 2024, two PiF-IR hyperspectral data sets have been analysed using hyPIRana. The Raw data are available in this repository:
 - single-fibrillar F-Actin
 - crosslinked F-Actin
+
+version v1.0.0
+date 2024-10-13
