@@ -1,6 +1,9 @@
 # hyPIRana
 Analysis software development for IR-PiFM / PiF-IR scan images and hyperspectral Scans 
 
+# hyPIRana v1.1.0 planned
+adding MonIRana
+
 # hyPIRana v1.0.1 initial release MIT License
 added the MIT license in the release
 
