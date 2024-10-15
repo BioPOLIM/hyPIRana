@@ -1,7 +1,8 @@
 # hyPIRana
 Analysis software development for IR-PiFM / PiF-IR scan images and hyperspectral Scans 
 
-
+# hyPIRana v1.1.0 release adding monIRana 
+.. planned
 
 # hyPIRana v1.0.0 initial release
 
