@@ -1,5 +1,5 @@
 # hyPIRana
-Analysis software development for IR-PiFM / PiF-IR scan images and hyperspectral Scans 
+Analysis software development for mid-IR PiFM / PiF-IR: analysis of hyperspectral Scans (MonIRana analyses data sets of single PiF-IR spectra)
 
 # hyPIRana v1.1.0 release including newly added MonIRana
 version v1.1.0 date 2025-04-08
