@@ -1,164 +1,235 @@
-# -*- coding: utf-8 -*-
+
 """
-hyPirana is a program for analysis of PiFM hyPIR spectra acquired using VistaScan
+hyPirana is a program for  applying Principal Component Analysis (PCA) of PiFM hyPIR spectra acquired using VistaScan
 Created on Fri Apr 24 08:06:26 2020
 
 @author: ungersebastian
-
-@contributions: TauDan, sinaravi
-
-modified on Fri Oct 16 by Daniela Taeuber for application to the spectral range of one tuner only
-modified by Mohammad Soltaninezhad for rescaling intensities and saving figures
-last modified on Fri August 13 2021 by Daniela Taeuber: implemented export of loadings as text-files
-
-hyPirana.py can do:
-- read a hyperspectral data set from a Vistascope
-- use AreaSelect for selecting a region of interest in the data via a GUI
-- use a substrate spectrum for calibrating the hyperspectral data. The substrate text-file should have one line with column titles and consist of two entries (wavelengths and intensities) separated by tabs "\t"
-- calculate mean spectra
-- run a PCA on the data set
+New features added by Maryam Ali: Ability to read single\multiple datasets, calibration, 
+analyze with combined PCA for multiple datasets, and clustered scatter plots
 """
-
 #%% imports & parameters
-
-import hyPIRana as ir
 
 from os.path import join
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-from datetime import datetime
+from scipy import signal
 
-#%% generate absolute paths of ressource data
+from IRAFM import IRAFM as ir
 
-path_dir = os.path.dirname(os.path.abspath(__file__))
 
-path_import = r'hyPIRana\resources\single-fibrillar F-Actin'
-headerfile  = 'F-actinDy4900007.txt'
+path_import = r'multi_hyPIRana\resources'
 
-path_final = join(path_dir, path_import)
+headerfile = ['BacVan30_0011.txt','BacVan60_0013.txt'] 
+Calib_file = [(pd.read_csv('avCaF2_BacVan30.txt', delimiter = '\t')), 
+              (pd.read_csv('avCaF2_BacVan60.txt', delimiter = '\t'))]
 
-today = datetime.strftime(datetime.now(), "%Y%m%d")
+path_final = join(path_import, path_import)
 
-save_path = join(path_dir, 'export')
 
-#%% loads data and plots associated VistaScan parameter images
+#%% Choosing no. of data sets to be read
 
-my_data = ir.IRAFM(path_final, headerfile) 
+n_set = 2
 
-pos =  [my_file['Caption']=='hyPIRFwd' for my_file in my_data['files']]
-hyPIRFwd = np.array(my_data['files'])[pos][0]
-data = np.reshape(hyPIRFwd['data'], (hyPIRFwd['data'].shape[0]*hyPIRFwd['data'].shape[1], hyPIRFwd['data'].shape[2]))
 
-my_data.plot_all()
+# loads data and plots associated VistaScan parameter images
+Data = []
 
-#%%
+for n in range(n_set):
+    my_data = ir(path_final, headerfile[n])
+    my_data.plot_all()
+    Data.append(my_data)
 
-my_wl  = my_data['wavelength']
-my_sum = np.sum(data, axis = 1)
-coord = np.arange(len(my_sum))
-zeros = np.zeros(len(my_sum))
-data = data[my_sum != 0]
-coord = coord[my_sum != 0]
-my_sum = my_sum[my_sum != 0]
 
-#Calibration using CaF:
+
+#%% Reading data & calibration files
+# Normalization by L1 vector normalization
+# plotting the mean spectrum after smoothing by savitzky-golay filter (2-5-5) 
+# can be changed by 'windows_length' value
+
+NORM = [] 
+SUM= []
+Img_pix =[]
+plt.figure()
+
+for n in range(n_set):
+    pos =  [my_file['Caption']=='hyPIRFwd' for my_file in Data[n]['files']]
+    hyPIRFwd = np.array(Data[n]['files'])[pos][0]
+    #Artifact removing (first lines, because of scanning)
+    hyPIRFwd['data'] = hyPIRFwd['data'][1:31, 1:32, :]
+    Img_pix.append(hyPIRFwd['data'][:, :, 0].shape)
+    data = np.reshape(hyPIRFwd['data'], (hyPIRFwd['data'].shape[0]*hyPIRFwd['data'].shape[1], hyPIRFwd['data'].shape[2]))
     
+    
+    #Calibration File for each dataset
+    Cali_data = np.array(Calib_file[n])
+    Cali_Spc = Cali_data[:, 1]
+    
+    data = data / Cali_Spc
+    my_sum = np.sum(data, axis = 1)
+    SUM.append(len(my_sum))
+    # zeros were excluded prior normalization and analysis
+    data = data[my_sum != 0]
+    my_sum = my_sum[my_sum != 0]
+        
+    spc_norm = np.array([(spc)/s for spc, s in zip(data, my_sum)])
+    NORM.append(spc_norm)    
+    mean_spc = np.mean(spc_norm, axis = 0)
+    plt.plot(Data[n]['wavelength'], 
+             signal.savgol_filter(mean_spc, window_length=11, polyorder=2, mode="nearest"),
+             label = 'Data'+str(n+1))
 
-path_caf = join(path_dir, path_import,'CalibrationFile_single fribrillar.txt')
-caf_file = pd.read_csv(path_caf, delimiter = '\t')
-caf_spc = np.array(caf_file)[:,1]
+plt.legend()
+plt.xlabel('Wavenumber (cm\u207b1)')
+plt.ylabel('intensity (normalized)')
+plt.title('mean spectrum')
+plt.tight_layout()
+plt.gca().invert_xaxis()   
+    
+#%% Merging data
+# no. of data sets to be included in PCA (ordered from the read data)
 
-caf_spc = caf_spc[830:931]
+set_PCA = 2
+NORMSpc = NORM[0]
+shape = [NORMSpc.shape]
 
-spc_norm = np.array([(spc/caf_spc)/s for spc, s in zip(data, my_sum)])
+if set_PCA == 1:
+    NORMSpc = NORMSpc
+else:
+    for a in range(set_PCA-1):
+#        sh = NORMSpc.shape
+#        shape.append(sh)
+        NORMSpc = np.concatenate((NORMSpc, NORM[a+1]), axis = 0)
+        sh = NORMSpc.shape
+        shape.append(sh)
+        print(NORMSpc.shape)
+
+coord = np.arange(len(NORMSpc))
+MEANSpc = np.mean(NORMSpc, axis=0)
 
 #%%
-# PlotIt
-mean_spc = np.mean(spc_norm, axis = 0)
-std_spc = np.std(spc_norm, axis = 0)
-my_fig = plt.figure()
-ax = plt.subplot(111)
-ax.fill_between(x = my_data['wavelength'], y1 = mean_spc+std_spc, y2 = mean_spc-std_spc, alpha = 0.6)
-plt.gca().invert_xaxis() #inverts values of x-axis
-ax.plot(my_data['wavelength'], mean_spc)
-ax.set_xlabel('wavenumber (1/cm)')
-ax.set_ylabel('intensity (normalized)')
-#ax.set_yticklabels([])
-plt.title('mean spectrum')
-my_fig.savefig( 'mean spectrum.png' )
-my_fig.tight_layout()
-my_spc = my_data.return_spc()
-my_wl  = my_data['wavelength']
 
-np.savetxt(r'export\MEAN.txt', mean_spc)
+# And Apply PCA
+# ncomp refers to the desired numbers of principal components
 
-#%% 
 from sklearn.decomposition import PCA
-
-ncomp = 2
-
+ncomp = 3
 model = PCA(n_components=ncomp)
 
-transformed_data = model.fit(spc_norm-mean_spc).transform(spc_norm-mean_spc).T
-loadings = model.components_
+transformed_data = model.fit(NORMSpc - MEANSpc).transform(NORMSpc - MEANSpc).T
 
-print("loadingtype",type(model))
-print("mysum",my_sum.shape)
-print("data",data.shape)
-print("spc_norm",spc_norm.shape)
-print("meanspc",mean_spc.shape)
-print("std",std_spc.shape)
-print("transform",transformed_data.shape)
-print("loading",loadings.shape)
+     
+
+
+#%% Loadings:
+# Plotted after smoothing by savitzky-golay filter (2-5-5) 
+# can be changed by 'windows_length' value
+
+loadings = model.components_
 
 my_fig = plt.figure()
 ax = plt.subplot(111)
 plt.gca().invert_xaxis() #inverts values of x-axis
 for icomp in range(ncomp):
-    ax.plot(my_data['wavelength'], loadings[icomp], label='PC'+str(icomp+1) )
-ax.set_xlabel('wavenumber (1/cm)')
+    ax.plot(Data[0]['wavelength'], 
+            signal.savgol_filter(loadings[icomp], window_length=11, polyorder=2, mode="nearest"),
+            label='PC'+str(icomp+1) )
+    ax.legend()
+ax.set_xlabel('Wavenumber (cm\u207b1)')
 ax.set_ylabel('intensity (normalized)')
-#ax.set_yticklabels([])
-ax.legend()
 plt.title('PCA-Loadings')
 
-my_fig.savefig( r'export\PCA-Loadings.png' )
 
-my_fig = plt.figure()
-ax = plt.subplot(111)
-ax.plot(transformed_data[0], transformed_data[1], '.')
-ax.set_xlim(np.quantile(transformed_data[0], 0.05),np.quantile(transformed_data[0], 0.95))
-ax.set_ylim(np.quantile(transformed_data[1], 0.05),np.quantile(transformed_data[1], 0.95))
-ax.set_xlabel('PC1')
-ax.set_ylabel('PC2')
-plt.title('scatterplot')
+#%% Scatter plots (clustered):
 
-my_fig.savefig( r'export\scatterplot.png' )
+limits = [0]
 
-my_fig.tight_layout()
-vmax = 100
+for j in range(set_PCA):    
+    limit = shape[j][0]
+    limits.append(limit)
+
+
+for sc in range(ncomp-1):
+    my_fig2 = plt.figure()
+    ax2 = plt.subplot(111)
+    for j in range(set_PCA):
+        ax2.plot(transformed_data[sc, limits[j]:limits[j+1]], transformed_data[sc+1, limits[j]:limits[j+1]], '.', label = ('Data ' + str(j+1)))        
+    ax2.legend()
+    ax2.set_xlabel('PC'+str(sc+1))
+    ax2.set_ylabel('PC'+str(sc+2))
+    plt.title('scatterplot PC' + str(sc+1) +'& PC'+ str(sc+2))
+    my_fig.tight_layout()
+   
+    if sc == 1:
+        my_fig3 = plt.figure()
+        ax3 = plt.subplot(111)
+        for j in range(set_PCA):
+            ax3.plot(transformed_data[sc-1, limits[j]:limits[j+1]], transformed_data[sc+1, limits[j]:limits[j+1]], '.', label = ('Data ' + str(j+1)))        
+        ax3.set_xlabel('PC'+str(sc))
+        ax3.set_ylabel('PC'+str(sc+2))
+        ax3.legend()
+        plt.title('scatterplot PC' + str(sc) +'& PC'+ str(sc+2))
+        my_fig.tight_layout()
+
+
+#%% Factor plots:
+
+total_sum = 0
+for t in range (set_PCA):
+    total_sum = total_sum + SUM[t]
+ 
+
+zeros = np.zeros((total_sum))    
 maps = [zeros.copy() for icomp in range(ncomp)]
-for icomp in range(ncomp):
-    maps[icomp][coord] = transformed_data[icomp]
-    maps[icomp] = np.reshape(maps[icomp], (my_data['xPixel'], my_data['yPixel']) )
-    
-    Km = maps[icomp][1:32,:]
-    
-    my_fig= plt.figure()
-    ax = plt.subplot(111)
-    plt.colorbar( ax.imshow(maps[icomp], cmap = 'coolwarm', extent = my_data.extent(), vmin = -vmax, vmax = vmax) )
-    
-    ax.set_xlabel('x scan ['+my_data['XPhysUnit']+']')
-    ax.set_ylabel('y scan ['+my_data['YPhysUnit']+']')
-    plt.title('factors PC'+str(icomp+1))
-    
-    my_fig.savefig( r'export\factors PC.png' )
 
+
+xpix = Img_pix[0][0]
+ypix = Img_pix[0][1]
+Img = []
+
+if set_PCA > 1:
+    for p in range(set_PCA-1):
+        xpix = xpix + Img_pix[p][0]
+        Img.append(Img_pix[p])
+        
+b = 0
+
+
+for icomp in range(ncomp):   
+    maps[icomp][coord] = transformed_data[icomp]
+    maps[icomp] = np.reshape(maps[icomp],(xpix, ypix))
+    
+    my_fig = plt.figure()
+    ax = plt.subplot(111)
+    #vmin and vmax were chosen for better visualization of our data sets (can be changed)
+    plt.colorbar( ax.imshow(maps[icomp].T, cmap = 'coolwarm', vmin = -0.005, vmax = 0.005))
+    ax.set_xlabel('x scan ['+Data[0]['XPhysUnit']+']')
+    ax.set_ylabel('y scan ['+Data[0]['XPhysUnit']+']')
+    ax.legend_ = None
+    plt.title('factors PC  '+str(icomp+1))
     my_fig.tight_layout()
 
-plt.show()
+#%%
 
+#Individual plots per each dataset
 
+pix = Img_pix[0][0]
 
+if set_PCA > 1:   
+    for i in range(set_PCA):
+        for icomp in range(ncomp): 
+            maps_ind = maps[icomp][b:pix, :]       
+            my_fig = plt.figure()
+            ax = plt.subplot(111)
+            plt.colorbar( ax.imshow(maps_ind, cmap = 'coolwarm', vmin = -0.005, vmax = 0.005))
+            ax.set_xlabel('x scan ['+Data[0]['XPhysUnit']+']')
+            ax.set_ylabel('y scan ['+Data[0]['XPhysUnit']+']')
+            ax.legend_ = None
+            plt.title('Data '+ str(i+1)+'PC'+str(icomp+1))
+            my_fig.tight_layout()
+        
+        
+        b = b + Img_pix[i][0]
+        pix = pix + Img_pix[i][0]
+
+        

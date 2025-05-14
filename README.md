@@ -1,5 +1,23 @@
 # hyPIRana
-Analysis software development for mid-IR PiFM / PiF-IR: analysis of hyperspectral Scans (MonIRana analyses data sets of single PiF-IR spectra)
+Analysis software development for analysis of hyperspectral data in mid-IR photo-induced force microscopy (mid-IR PiFM, PiF-IR) 
+-- MonIRana analyzes data sets of single PiF-IR spectra --
+
+# hyPIRana v2.0.0 release extending hyPIRana to the combined analysis of multiple hyperspectral data sets 
+version v2.0.0 date 2025-05-14
+
+Contributions to this update of hypIRana have been made by Maryam Ali, Sebastian Unger, and Daniela Täuber. 
+For details see headers of the code.
+
+This new release of hypIRana can do:
+- Calibration 
+- Calculate mean spectra of the individual hyperspectral data sets
+- Run a combined PCA on the data sets and provide plots of results
+- Clustering of data sets by color in combined PCA scatter plots
+
+Two additional hyperspectral data sets are available in this update of hyPIRana.py:
+- Bacillus Subtilis incubated with Vancomycin for 30 minutes
+- Bacillus Subtilis incubated with Vancomycin for 60 minutes
+
 
 # hyPIRana v1.1.0 release including newly added MonIRana
 version v1.1.0 date 2025-04-08
