@@ -18,7 +18,7 @@ from scipy import signal
 from IRAFM import IRAFM as ir
 
 
-path_import = r'multi_hyPIRana\resources'
+path_import = r'hyPIRana\resources'
 
 headerfile = ['BacVan30_0011.txt','BacVan60_0013.txt'] 
 Calib_file = [(pd.read_csv('avCaF2_BacVan30.txt', delimiter = '\t')), 
