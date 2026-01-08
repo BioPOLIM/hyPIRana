@@ -7,7 +7,7 @@ Analysis software development for analysis of hyperspectral data in mid-IR photo
 
 version v2.1.0 date 2025-01-08
 
-Contributions to this update of hypIRana have been made by Maryam Ali
+Contributions to this update of hypIRana have been made by Maryam Ali.
 For details see headers of the code.
 
 The new release of hyPIRana includes an approach for Heirarchical Clustering Analysis (HCA), doing:
