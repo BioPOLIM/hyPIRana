@@ -2,6 +2,20 @@
 Analysis software development for analysis of hyperspectral data in mid-IR photo-induced force microscopy (mid-IR PiFM, PiF-IR) 
 -- MonIRana analyzes data sets of single PiF-IR spectra --
 
+
+# hyPIRana v2.1.0 release adding new features for cluster analysis to hyPIRana
+
+version v2.1.0 date 2025-01-08
+
+Contributions to this update of hypIRana have been made by Maryam Ali
+For details see headers of the code.
+
+The new release of hyPIRana includes an approach for Heirarchical Clustering Analysis (HCA), doing:
+- Generating a HCA dendrogram between the hyperspectra forming clusters.
+- Supervised Agglomerative clustering based on user's desired number of spectra (referring to created dendrogram) 
+- Plot the mean spectra for each cluster.
+- generate the cluster maps by non negative factorization algorithm.
+
 # hyPIRana v2.0.0 release extending hyPIRana to the combined analysis of multiple hyperspectral data sets 
 version v2.0.0 date 2025-05-14
 
