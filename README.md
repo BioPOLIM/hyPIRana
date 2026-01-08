@@ -5,7 +5,7 @@ Analysis software development for analysis of hyperspectral data in mid-IR photo
 
 # hyPIRana v2.1.0 release adding new features for cluster analysis to hyPIRana
 
-version v2.1.0 date 2025-01-08
+version v2.1.0 date 2026-01-08
 
 Contributions to this update of hypIRana have been made by Maryam Ali.
 For details see headers of the code.
