@@ -3,6 +3,14 @@ Analysis software development for analysis of hyperspectral data in mid-IR photo
 -- MonIRana analyzes data sets of single PiF-IR spectra --
 
 
+# hyPIRana v2.1.1 release: minor modifications for plotting
+
+version v2.1.1 date 2026-02-11
+
+Importing annotation for factor maps plots
+
+
+
 # hyPIRana v2.1.0 release adding new features for cluster analysis to hyPIRana
 
 version v2.1.0 date 2026-01-08
