@@ -14,6 +14,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
+from sklearn.preprocessing import Normalizer
+from scipy.cluster import hierarchy
+from scipy.cluster.hierarchy import linkage, dendrogram
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.decomposition import non_negative_factorization
 
 from IRAFM import IRAFM as ir
 
@@ -173,6 +178,7 @@ for sc in range(ncomp-1):
 
 
 #%% Factor plots:
+# Overview of all PC factor maps [for all data sets in one plot]
 
 total_sum = 0
 for t in range (set_PCA):
@@ -202,7 +208,7 @@ for icomp in range(ncomp):
     my_fig = plt.figure()
     ax = plt.subplot(111)
     #vmin and vmax were chosen for better visualization of our data sets (can be changed)
-    plt.colorbar( ax.imshow(maps[icomp].T, cmap = 'coolwarm', vmin = -0.005, vmax = 0.005))
+    plt.colorbar( ax.imshow(maps[icomp], cmap = 'coolwarm', vmin = -0.005, vmax = 0.005))
     ax.set_xlabel('x scan ['+Data[0]['XPhysUnit']+']')
     ax.set_ylabel('y scan ['+Data[0]['XPhysUnit']+']')
     ax.legend_ = None
