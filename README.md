@@ -7,9 +7,8 @@ Analysis software development for analysis of hyperspectral data in mid-IR photo
 
 version v2.1.1 date 2026-02-11
 
-Importing annotation for factor maps plots
-
-
+A small bug in the overview plots (lines 180ff #%% Factor plots: # Overview of all PC factor maps [for all data sets in one plot]) was corrected
+and the annotation for factor maps plots was improved.
 
 # hyPIRana v2.1.0 release adding new features for cluster analysis to hyPIRana
 
